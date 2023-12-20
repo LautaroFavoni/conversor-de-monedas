@@ -68,9 +68,17 @@ namespace conversor_de_monedas.Data
             {
                 Id = 2,
                 Name = "Premiun",
-                TirosMax = 9999,
+                TirosMax = 10,
 
             };
+
+            Suscripcion VIP = new Suscripcion()
+            {
+                Id = 3,
+                Name = "VIP",
+                TirosMax = 5000,
+            };
+
 
             User Lautaro = new User()
             {
@@ -79,7 +87,7 @@ namespace conversor_de_monedas.Data
                 Password = "password",
                 Email = "email@gmail.com",
                 Tiros = 0,
-               
+                Role = "ADMIN",
                 
                 SuscripcionId = Comun.Id,
                 
@@ -93,7 +101,7 @@ namespace conversor_de_monedas.Data
                 Password = "password",
                 Email = "email2@gmail.com",
                 Tiros = 0,
-                
+                Role = "Free",
                 SuscripcionId = Premiun.Id,
                
 

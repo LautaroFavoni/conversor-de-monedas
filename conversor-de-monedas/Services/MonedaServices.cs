@@ -1,5 +1,7 @@
 ﻿using conversor_de_monedas.Data;
 using conversor_de_monedas.Data.Entities;
+using conversor_de_monedas.Data.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace conversor_de_monedas.Services
@@ -7,9 +9,11 @@ namespace conversor_de_monedas.Services
     public class MonedaServices
     {
         private readonly ConversorContext _context;
-        public MonedaServices(ConversorContext context)
+        private readonly UserServices _userServices;
+        public MonedaServices(ConversorContext context, UserServices userServices)
         {
             _context = context;
+            _userServices = userServices;
         }
 
         public List<Moneda> GetMonedas()
@@ -17,15 +21,20 @@ namespace conversor_de_monedas.Services
             return _context.Monedas.ToList();
         }
 
-        public Moneda GetMoneda(int id)
+        public Moneda GetMonedaById(int id)
         {
             return _context.Monedas.SingleOrDefault(c => c.Id == id);
         }
 
+        public Moneda GetMonedaByName(string name)
+        {
+            Moneda moneda = _context.Monedas.SingleOrDefault(c => c.Sigla == name);
+            return moneda;
+        }
 
         public bool DeleteMoneda(int id)
         {
-            Moneda MonedaToDelete = GetMoneda(id);
+            Moneda MonedaToDelete = GetMonedaById(id);
             if (MonedaToDelete != null)
             {
                 _context.Monedas.Remove(MonedaToDelete);
@@ -37,15 +46,27 @@ namespace conversor_de_monedas.Services
 
         }
 
-       
 
-        public double Intercambio(User usuario, Moneda MonedaOrigen, Moneda MonedaDestino, int Cantidad ) 
+
+        public List<string> GetListMonedas()
         {
-            double resultado;
-            int tirosmax = usuario.Suscripcion.TirosMax;
-            
+            return _context.Monedas.Select(c => c.Sigla).ToList();
+        }
 
-            if (usuario.Tiros <= tirosmax)
+        public double Intercambio(int usuarioID, string MonedaOrigenName, string MonedaDestinoName, int Cantidad)
+        {
+            //Falta hacer traer el usuario desde el JWT.
+            Moneda MonedaOrigen = GetMonedaByName(MonedaOrigenName);
+            Moneda MonedaDestino = GetMonedaByName(MonedaDestinoName);
+            User usuario = _userServices.GetUser(usuarioID);
+            double resultado;
+            Suscripcion suscripcion = _context.suscripciones.SingleOrDefault(c => c.Id == usuario.SuscripcionId);
+            int tirosmax = suscripcion.TirosMax;
+
+
+
+
+            if (usuario.Tiros < tirosmax)
             {
                 resultado = (Cantidad * MonedaOrigen.valor) * MonedaDestino.valor;
 
@@ -54,15 +75,15 @@ namespace conversor_de_monedas.Services
                 _context.Users.Update(usuario);
 
             }
-            else resultado = 9999.9999;
+            else resultado = -99;
 
             Conversion interc = new Conversion()
             {
-                
+
                 IdMonedaOrigen = MonedaOrigen.Id,
-                
+
                 IdMonedaDestino = MonedaDestino.Id,
-                
+
                 IdUser = usuario.Id,
                 fecha = DateTime.Now,
             };
@@ -74,10 +95,33 @@ namespace conversor_de_monedas.Services
             return resultado;
         }
 
+        public void CreateMoneda(CreateAndUpdateMonedaDTO dto)
+        {
+            Moneda MonedaNew = new Moneda()
+            {
+                valor = dto.valor,
+                Sigla = dto.sigla,
+                Name = dto.name,
+                
+            };
+            _context.Monedas.Add(MonedaNew);
+            _context.SaveChanges();
+        }
 
+        public void UpdateMoneda(CreateAndUpdateMonedaDTO dto, int MonedaId)
+        {
+            Moneda? monedaUpdate = _context.Monedas.SingleOrDefault(moneda => moneda.Id == MonedaId);
+            if (monedaUpdate is not null)
+            {
+                monedaUpdate.valor = dto.valor;
+                monedaUpdate.Sigla = dto.sigla;
+                monedaUpdate.Name = dto.name;
+                _context.SaveChanges();
+            }
 
+        }
 
 
     }
-
 }
+

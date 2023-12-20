@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace conversor_de_monedas.Data.Entities
 {
@@ -15,7 +16,7 @@ namespace conversor_de_monedas.Data.Entities
 
         public string Password { get; set; }
 
-
+        public string Role { get; set; }
         public int Tiros { get; set; }
 
         [ForeignKey("SuscripcionId")]
